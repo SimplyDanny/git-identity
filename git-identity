@@ -95,6 +95,15 @@ check_arguments () {
   fi
 }
 
+is_valid_identity () {
+  local identity="$1"
+
+  [[ "$identity" =~ ^[_[:alnum:]][-_[:alnum:]]*$ ]] \
+    || die "ERROR: The identity name may only contain alphanumeric"\
+           "characters, underscores and hyphens. Hyphens are not"\
+           "valid in the first position."
+}
+
 case $IDENTITY in
   "") print_current_identity ;;
 
@@ -105,6 +114,7 @@ case $IDENTITY in
   -d|--define)
     shift
     check_arguments $# 3
+    is_valid_identity "$1"
     define_identity "$1" "$2" "$3"
     ;;
 
