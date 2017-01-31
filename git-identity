@@ -55,10 +55,6 @@ list_identities () {
 print_raw_identity () {
   local identity="$1"
 
-  if [ "x$identity" = "x" ]; then
-    identity="$(git config user.identity)"
-  fi
-
   echo "$(format_raw_identity "$identity")"
 }
 
@@ -104,6 +100,26 @@ is_valid_identity () {
            "valid in the first position."
 }
 
+is_empty () {
+  local argument="$1"
+
+  [[ -z "$argument" ]]
+  return
+}
+
+get_current_identity_if_empty () {
+  local identity="$1"
+  local current_identity_variable=$2
+
+  if is_empty "$identity" ; then
+    identity="$(git config user.identity)"
+    is_empty "$identity" \
+      && die "ERROR: No identity set. Use 'git identity <identity>' to"\
+             "set one first."
+  fi
+  eval $current_identity_variable="'$identity'"
+}
+
 case $IDENTITY in
   "") print_current_identity ;;
 
@@ -126,7 +142,8 @@ case $IDENTITY in
 
   -p|--print)
     shift
-    print_raw_identity "$1"
+    get_current_identity_if_empty "$1" current_identity
+    print_raw_identity "$current_identity"
     ;;
 
   *) use_identity "$IDENTITY" ;;
