@@ -91,6 +91,17 @@ check_arguments () {
   fi
 }
 
+is_identity () {
+  local identity="$1"
+  local raw_identities="$(list_raw_identities)"
+
+  is_valid_identity "$identity"
+
+  [[ "$raw_identities" =~ (^|[[:space:]])"$identity"([[:space:]]|$) ]] \
+    || die "ERROR: Identity '$identity' not found. Use 'git identity --list'"\
+           "to print possible ones."
+}
+
 is_valid_identity () {
   local identity="$1"
 
@@ -137,14 +148,19 @@ case $IDENTITY in
   -r|--remove)
     shift
     check_arguments $# 1
+    is_identity "$1"
     remove_identity "$1"
     ;;
 
   -p|--print)
     shift
     get_current_identity_if_empty "$1" current_identity
+    is_identity "$current_identity"
     print_raw_identity "$current_identity"
     ;;
 
-  *) use_identity "$IDENTITY" ;;
+  *)
+    is_identity "$IDENTITY"
+    use_identity "$IDENTITY"
+    ;;
 esac
